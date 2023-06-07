@@ -1,0 +1,110 @@
+-- Settings
+local Settings = {} and Settings or {
+    Image = "",
+    FastMode = false,
+    Mode = "Randomize"
+}
+
+-- Services
+local Players = game:GetService("Players")
+local HttpService = game:GetService("HttpService")
+local StarterGui = game:GetService("StarterGui")
+
+-- Varriables
+local LocalPlayer = Players.LocalPlayer
+local MainGui = LocalPlayer.PlayerGui:WaitForChild("MainGui")
+
+function GetGrid()
+    local Grid = MainGui:WaitForChild("PaintFrame", 1):WaitForChild("Grid", 1)
+
+    if not Grid then
+        Grid = MainGui:WaitForChild("PaintFrame", 1):WaitForChild("GridHolder", 1):WaitForChild("Grid", 1)
+    end
+
+    return Grid
+end
+
+function SendNotify(title, text)
+    StarterGui:SetCore("SendNotification", {
+        Title = title,
+        Text = text
+    })
+end
+
+local Grid = GetGrid()
+
+function GetJson(url)
+    if string.len(url) > 5 then
+        local Response = game:HttpGet("https://f818fcf9-3b10-4c92-8176-0bef47a8421d.id.repl.co/get?url=" .. url)
+
+        return Response == "the file size is too big!" and "fstb" or HttpService:JSONDecode(Response)
+    end
+end
+
+function Import(url)
+    local pixels = GetJson(url)
+    local usedIndices = {}
+
+    if (pixels == "fstb") then
+        SendNotify("Occurred Error", "File too large, limit set to prevent VPS crash. Apologies for the inconvenience")
+    else
+        if not Grid then Grid = GetGrid() end
+    
+        for i = 1, #pixels do
+            local pixelIndex = i
+
+            if Settings.Mode == "Randomize" then
+                pixelIndex = math.random(#pixels)
+                
+                while usedIndices[pixelIndex] do
+                    pixelIndex = math.random(#pixels)
+                end
+                
+                usedIndices[pixelIndex] = true
+            end
+            
+            local pixel = pixels[pixelIndex]
+            local r, g, b = pixel[1], pixel[2], pixel[3]
+            
+            Grid[tostring(pixelIndex)].BackgroundColor3 = Color3.fromRGB(r, g, b)
+            
+            if not Settings.FastDraw then task.wait(.1); end
+        end
+   end
+end
+
+-- User Interface
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/bloodball/-back-ups-for-libs/main/wally2", true))()
+local Window = Library:CreateWindow("StarvArt | EsohaSL")
+
+Window:Button("Draw", function()
+    task.spawn(function()
+        Import(Settings.Image)
+    end)
+end)
+
+Window:Box("Image URL", {}, function(value) 
+    task.spawn(function()
+        Settings.Image = value
+    end)
+end) 
+
+Window:Dropdown("Draw Mode", {list = { "Randomize", "By Step" } }, function(var) 
+    task.spawn(function()
+        Settings.Mode = var
+    end)
+end)
+
+Window:Toggle("Fast Draw", {default = false}, function(state)
+    task.spawn(function()
+        Settings.FastDraw = state
+    end)
+end)
+
+Window:Button("YouTube: EsohaSL", function()
+    task.spawn(function()
+        pcall(function()
+            setclipboard("https://www.youtube.com/@esohasl")
+        end)
+    end)
+end)
