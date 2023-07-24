@@ -1,0 +1,67 @@
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
+
+local noclipEnabled = false
+
+local function disableNoclip()
+    if noclipEnabled then return end
+    flyEnabled = false
+
+local function enableNoclip()
+    if noclipEnabled then return end
+    noclipEnabled = true
+
+	local Workspace = game:GetService("Workspace")
+	local Players = game:GetService("Players")
+	local Plr = Players.LocalPlayer
+	local Clipon = false
+
+	local Noclip = Instance.new("ScreenGui")
+	local BG = Instance.new("Frame")
+	local Title = Instance.new("TextLabel")
+	local Toggle = Instance.new("TextButton")
+	local StatusPF = Instance.new("TextLabel")
+	local Status = Instance.new("TextLabel")
+	local Credit = Instance.new("TextLabel")
+
+	Noclip.Name = "Noclip"
+	Noclip.Parent = game.CoreGui
+
+	BG.Name = "BG"
+	BG.Parent = Noclip
+	-- Rest of the UI setup...
+
+	Toggle.MouseButton1Click:connect(function()
+		if Status.Text == "off" then
+			Clipon = true
+			Status.Text = "on"
+			Status.TextColor3 = Color3.new(0, 185, 0)
+			Stepped = game:GetService("RunService").Stepped:Connect(function()
+				if not Clipon == false then
+					for a, b in pairs(Workspace:GetChildren()) do
+						if b.Name == Plr.Name then
+							for i, v in pairs(Workspace[Plr.Name]:GetChildren()) do
+								if v:IsA("BasePart") then
+									v.CanCollide = false
+								end
+							end
+						end
+					end
+				else
+					Stepped:Disconnect()
+				end
+			end)
+		elseif Status.Text == "on" then
+			Clipon = false
+			Status.Text = "off"
+			Status.TextColor3 = Color3.new(170, 0, 0)
+		end
+	end)
+end
+
+Section:NewToggle("test", "test", function(state)
+    if state then
+        enableNoclip()
+    else
+        disableNoclip()
+    end
+end)
